@@ -8,9 +8,11 @@
 
 #![allow(function_casts_as_integer)]
 
+#[cfg(feature = "port-modules")]
 pub mod gpu;
 pub mod launcher;
 pub mod scripts;
+#[cfg(feature = "port-modules")]
 pub mod src;
 pub mod util;
 

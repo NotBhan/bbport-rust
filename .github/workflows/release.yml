@@ -61,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           cd "$GITHUB_WORKSPACE"
-          cargo build --release --locked
+          cargo build --release --locked --no-default-features
 
           mkdir -p dist
           cp target/release/bbport-gui.exe target/release/bbport-rs.exe dist/
