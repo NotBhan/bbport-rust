@@ -1,0 +1,57 @@
+//! AvPlayer error codes, ported from
+//! `legacy/gpu/shadps4/core/libraries/avplayer/avplayer_error.h`.
+
+/// `ORBIS_AVPLAYER_ERROR_INVALID_PARAMS`.
+pub const ORBIS_AVPLAYER_ERROR_INVALID_PARAMS: i32 = 0x806A_0001u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_OPERATION_FAILED`.
+pub const ORBIS_AVPLAYER_ERROR_OPERATION_FAILED: i32 = 0x806A_0002u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_NO_MEMORY`.
+pub const ORBIS_AVPLAYER_ERROR_NO_MEMORY: i32 = 0x806A_0003u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_NOT_SUPPORTED`.
+pub const ORBIS_AVPLAYER_ERROR_NOT_SUPPORTED: i32 = 0x806A_0004u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_WAR_FILE_NONINTERLEAVED`.
+pub const ORBIS_AVPLAYER_ERROR_WAR_FILE_NONINTERLEAVED: i32 = 0x806A_00A0u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_WAR_LOOPING_BACK`.
+pub const ORBIS_AVPLAYER_ERROR_WAR_LOOPING_BACK: i32 = 0x806A_00A1u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_WAR_JUMP_COMPLETE`.
+pub const ORBIS_AVPLAYER_ERROR_WAR_JUMP_COMPLETE: i32 = 0x806A_00A3u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_INFO_MARLIN_ENCRY`.
+pub const ORBIS_AVPLAYER_ERROR_INFO_MARLIN_ENCRY: i32 = 0x806A_00B0u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_INFO_PLAYREADY_ENCRY`.
+pub const ORBIS_AVPLAYER_ERROR_INFO_PLAYREADY_ENCRY: i32 = 0x806A_00B4u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_INFO_AES_ENCRY`.
+pub const ORBIS_AVPLAYER_ERROR_INFO_AES_ENCRY: i32 = 0x806A_00B5u32 as i32;
+/// `ORBIS_AVPLAYER_ERROR_INFO_OTHER_ENCRY`.
+pub const ORBIS_AVPLAYER_ERROR_INFO_OTHER_ENCRY: i32 = 0x806A_00BFu32 as i32;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const ALL: [i32; 11] = [
+        ORBIS_AVPLAYER_ERROR_INVALID_PARAMS,
+        ORBIS_AVPLAYER_ERROR_OPERATION_FAILED,
+        ORBIS_AVPLAYER_ERROR_NO_MEMORY,
+        ORBIS_AVPLAYER_ERROR_NOT_SUPPORTED,
+        ORBIS_AVPLAYER_ERROR_WAR_FILE_NONINTERLEAVED,
+        ORBIS_AVPLAYER_ERROR_WAR_LOOPING_BACK,
+        ORBIS_AVPLAYER_ERROR_WAR_JUMP_COMPLETE,
+        ORBIS_AVPLAYER_ERROR_INFO_MARLIN_ENCRY,
+        ORBIS_AVPLAYER_ERROR_INFO_PLAYREADY_ENCRY,
+        ORBIS_AVPLAYER_ERROR_INFO_AES_ENCRY,
+        ORBIS_AVPLAYER_ERROR_INFO_OTHER_ENCRY,
+    ];
+
+    #[test]
+    fn the_codes_are_distinct_and_failures() {
+        let mut sorted = ALL;
+        sorted.sort_unstable();
+        for pair in sorted.windows(2) {
+            assert_ne!(pair[0], pair[1], "no two codes collide");
+        }
+        for code in ALL {
+            assert!(code < 0, "an Orbis error has the top bit set: {code:#x}");
+            assert_eq!(code as u32 >> 16, 0x806A, "the AvPlayer facility");
+        }
+    }
+}

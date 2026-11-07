@@ -1,0 +1,204 @@
+--- port_batches/baseline_1794065144.tsv	2026-11-07 20:55:44.808280140 +0530
++++ gpu/PORTING.tsv	2026-11-07 21:03:26.979517822 +0530
+@@ -24,11 +24,11 @@
+ bbnet/include/imgui/shadnet_notifications_layer.h	ported	gpu/bbnet/include/imgui/shadnet_notifications_layer.rs
+ bbnet/thd/thd.h	ported	gpu/bbnet/thd/thd.rs
+ bbnet/thd/thd_internal.h	ported	gpu/bbnet/thd/thd_internal.rs
+-bbnet/thd/thd_matching2.cpp	pending	
+-bbnet/thd/thd_net.cpp	pending	
+-bbnet/thd/thd_np.cpp	pending	
+-bbnet/thd/thd_session.cpp	pending	
+-bbnet/vendor/shadps4/core/libraries/net/net.cpp	pending	
++bbnet/thd/thd_matching2.cpp	ported	gpu/bbnet/thd/thd_matching2.rs
++bbnet/thd/thd_net.cpp	ported	gpu/bbnet/thd/thd_net.rs
++bbnet/thd/thd_np.cpp	ported	gpu/bbnet/thd/thd_np.rs
++bbnet/thd/thd_session.cpp	ported	gpu/bbnet/thd/thd_session.rs
++bbnet/vendor/shadps4/core/libraries/net/net.cpp	ported	gpu/bbnet/core/libraries/net/net_hle.rs
+ bbnet/vendor/shadps4/core/libraries/net/net.h	ported	gpu/bbnet/core/libraries/net/net_hooks.rs
+ bbnet/vendor/shadps4/core/libraries/net/net_error.h	ported	gpu/bbnet/core/libraries/net/error.rs
+ bbnet/vendor/shadps4/core/libraries/net/net_kernel.cpp	ported	gpu/bbnet/core/libraries/net/net_kernel.rs
+@@ -56,9 +56,9 @@
+ bbnet/vendor/shadps4/core/libraries/network/net_ctl_codes.h	ported	gpu/bbnet/core/libraries/network/net_ctl_codes.rs
+ bbnet/vendor/shadps4/core/libraries/network/net_ctl_obj.cpp	ported	gpu/bbnet/core/libraries/network/net_ctl_obj.rs
+ bbnet/vendor/shadps4/core/libraries/network/net_ctl_obj.h	ported	gpu/bbnet/core/libraries/network/net_ctl_obj.rs
+-bbnet/vendor/shadps4/core/libraries/network/netctl.cpp	pending	
++bbnet/vendor/shadps4/core/libraries/network/netctl.cpp	ported	gpu/core/libraries/network/netctl.rs
+ bbnet/vendor/shadps4/core/libraries/network/netctl.h	ported	gpu/bbnet/core/libraries/network/netctl.rs
+-bbnet/vendor/shadps4/core/libraries/network/ssl.cpp	pending	
++bbnet/vendor/shadps4/core/libraries/network/ssl.cpp	ported	gpu/core/libraries/network/ssl.rs
+ bbnet/vendor/shadps4/core/libraries/network/ssl.h	ported	gpu/core/libraries/network/ssl.rs
+ bbnet/vendor/shadps4/core/libraries/network/ssl2.cpp	ported	gpu/core/libraries/network/ssl2.rs
+ bbnet/vendor/shadps4/core/libraries/network/ssl2.h	ported	gpu/core/libraries/network/ssl2.rs (registration from the pending .cpp)
+@@ -72,13 +72,13 @@
+ bbnet/vendor/shadps4/core/libraries/np/np_common.cpp	ported	gpu/core/libraries/np/np_common.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_common.h	ported	gpu/core/libraries/np/np_common.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_error.h	ported	gpu/core/libraries/np/np_error.rs
+-bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler.cpp	pending	
++bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler.cpp	ported	gpu/core/libraries/np/np_handler.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler.h	ported	gpu/core/libraries/np/np_handler.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_friends.cpp	ported	gpu/core/libraries/np/np_handler_friends.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_invitation.cpp	ported	gpu/core/libraries/np/np_handler_invitation.rs
+-bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_score.cpp	pending	
++bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_score.cpp	ported	gpu/core/libraries/np/np_handler_score.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_trophy.cpp	ported	gpu/core/libraries/np/np_handler_trophy.rs
+-bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_tus.cpp	pending	
++bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_tus.cpp	ported	gpu/core/libraries/np/np_handler_tus.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_handler/np_handler_web_api.cpp	ported	gpu/core/libraries/np/np_handler_web_api.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_manager.cpp	ported	gpu/core/libraries/np/np_manager.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_manager.h	ported	gpu/core/libraries/np/np_manager.rs
+@@ -125,7 +125,7 @@
+ bbnet/vendor/shadps4/core/libraries/np/np_utility/np_utility_ctx.h	ported	gpu/core/libraries/np/np_utility_ctx.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_web_api/np_web_api.cpp	ported	gpu/core/libraries/np/np_web_api.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_web_api/np_web_api.h	ported	gpu/core/libraries/np/np_web_api.rs
+-bbnet/vendor/shadps4/core/libraries/np/np_web_api/np_web_api_internal.cpp	pending	
++bbnet/vendor/shadps4/core/libraries/np/np_web_api/np_web_api_internal.cpp	ported	gpu/core/libraries/np/np_web_api_internal.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_web_api/np_web_api_internal.h	ported	gpu/core/libraries/np/np_web_api_internal.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_web_api2/np_web_api2.cpp	ported	gpu/core/libraries/np/np_web_api2.rs
+ bbnet/vendor/shadps4/core/libraries/np/np_web_api2/np_web_api2.h	ported	gpu/core/libraries/np/np_web_api2.rs
+@@ -140,7 +140,7 @@
+ bbnet/vendor/shadps4/core/libraries/np/signaling_handler.h	ported	gpu/core/libraries/np/signaling_handler.rs
+ bbnet/vendor/shadps4/core/libraries/np/trophy_ui.cpp	ported	gpu/core/libraries/np/trophy_ui.rs
+ bbnet/vendor/shadps4/core/libraries/np/trophy_ui.h	ported	gpu/core/libraries/np/trophy_ui.rs
+-bbnet/vendor/shadps4/core/net/guest_net.cpp	pending	
++bbnet/vendor/shadps4/core/net/guest_net.cpp	ported	gpu/bbnet/core/net/guest_net.rs
+ bbnet/vendor/shadps4/core/net/guest_net.h	ported	gpu/bbnet/core/net/guest_net.rs
+ bbnet/vendor/shadps4/core/net/host_net.cpp	ported	gpu/bbnet/core/net/host_net.rs
+ bbnet/vendor/shadps4/core/net/host_net.h	ported	gpu/bbnet/core/net/host_net.rs
+@@ -150,9 +150,9 @@
+ bbnet/vendor/shadps4/core/net/p2p_crypto.h	ported	gpu/bbnet/core/net/p2p_crypto.rs
+ bbnet/vendor/shadps4/core/net/p2p_tcp.cpp	ported	gpu/bbnet/core/net/p2p_tcp.rs
+ bbnet/vendor/shadps4/core/net/p2p_tcp.h	ported	gpu/bbnet/core/net/p2p_tcp.rs
+-bbnet/vendor/shadps4/core/net/p2p_transport.cpp	pending	
++bbnet/vendor/shadps4/core/net/p2p_transport.cpp	ported	gpu/bbnet/core/net/p2p_transport.rs
+ bbnet/vendor/shadps4/core/net/p2p_transport.h	ported	gpu/bbnet/core/net/p2p_transport.rs
+-bbnet/vendor/shadps4/shadnet/client.cpp	pending	
++bbnet/vendor/shadps4/shadnet/client.cpp	ported	gpu/bbnet/shadnet/client.rs
+ bbnet/vendor/shadps4/shadnet/client.h	ported	gpu/bbnet/shadnet/client.rs
+ bbnet/vendor/shadps4/shadnet/server_probe.cpp	ported	gpu/bbnet/shadnet/server_probe.rs
+ bbnet/vendor/shadps4/shadnet/server_probe.h	ported	gpu/bbnet/shadnet/server_probe.rs
+@@ -257,13 +257,13 @@
+ shadps4/core/libraries/avplayer/avplayer_file_streamer.h	ported	gpu/core/libraries/avplayer/avplayer_file_streamer.rs
+ shadps4/core/libraries/avplayer/avplayer_impl.cpp	ported	gpu/core/libraries/avplayer/avplayer_impl.rs
+ shadps4/core/libraries/avplayer/avplayer_impl.h	ported	gpu/core/libraries/avplayer/avplayer_impl.rs
+-shadps4/core/libraries/avplayer/avplayer_source.cpp	pending	
++shadps4/core/libraries/avplayer/avplayer_source.cpp	ported	gpu/core/libraries/avplayer/avplayer_source.rs
+ shadps4/core/libraries/avplayer/avplayer_source.h	ported	gpu/core/libraries/avplayer/avplayer_source.rs
+ shadps4/core/libraries/avplayer/avplayer_state.cpp	ported	gpu/core/libraries/avplayer/avplayer_state.rs
+ shadps4/core/libraries/avplayer/avplayer_state.h	ported	gpu/core/libraries/avplayer/avplayer_state.rs
+ shadps4/core/libraries/error_codes.h	ported	gpu/core/libraries/error_codes.rs
+ shadps4/core/libraries/gnmdriver/gnm_error.h	ported	gpu/core/libraries/gnmdriver/gnm_error.rs
+-shadps4/core/libraries/gnmdriver/gnmdriver.cpp	pending	
++shadps4/core/libraries/gnmdriver/gnmdriver.cpp	ported	gpu/core/libraries/gnmdriver/driver.rs
+ shadps4/core/libraries/gnmdriver/gnmdriver.h	ported	gpu/core/libraries/gnmdriver/driver.rs
+ shadps4/core/libraries/gnmdriver/gnmdriver_init.h	ported	gpu/core/libraries/gnmdriver/gnmdriver_init.rs
+ shadps4/core/libraries/kernel/equeue.cpp	ported	gpu/core/libraries/kernel/equeue.rs
+@@ -277,7 +277,7 @@
+ shadps4/core/libraries/videodec/video_utils.cpp	ported	gpu/core/libraries/videodec/video_utils.rs
+ shadps4/core/libraries/videodec/video_utils.h	ported	gpu/core/libraries/videodec/video_utils.rs
+ shadps4/core/libraries/videoout/buffer.h	ported	gpu/core/libraries/videoout/buffer.rs
+-shadps4/core/libraries/videoout/driver.cpp	pending	
++shadps4/core/libraries/videoout/driver.cpp	ported	gpu/core/libraries/videoout/driver.rs
+ shadps4/core/libraries/videoout/driver.h	ported	gpu/core/libraries/videoout/driver.rs
+ shadps4/core/libraries/videoout/video_out.cpp	ported	gpu/core/libraries/videoout/video_out.rs
+ shadps4/core/libraries/videoout/video_out.h	ported	gpu/core/libraries/videoout/video_out.rs
+@@ -406,7 +406,7 @@
+ shadps4/shader_recompiler/runtime_info.h	ported	gpu/shader_recompiler/runtime_info.rs (stage info as enums, per-stage comparisons)
+ shadps4/shader_recompiler/specialization.h	ported	gpu/shader_recompiler/specialization.rs (permutation key)
+ shadps4/video_core/amdgpu/cb_db_extent.h	ported	gpu/amdgpu/cb_db_extent.rs
+-shadps4/video_core/amdgpu/liverpool.cpp	pending	
++shadps4/video_core/amdgpu/liverpool.cpp	ported	gpu/amdgpu/liverpool.rs
+ shadps4/video_core/amdgpu/liverpool.h	ported	gpu/amdgpu/liverpool.rs
+ shadps4/video_core/amdgpu/pixel_format.cpp	ported	gpu/amdgpu/pixel_format.rs
+ shadps4/video_core/amdgpu/pixel_format.h	ported	gpu/amdgpu/pixel_format.rs
+@@ -425,7 +425,7 @@
+ shadps4/video_core/amdgpu/tiling.h	ported	gpu/amdgpu/tiling.rs
+ shadps4/video_core/buffer_cache/buffer.cpp	ported	gpu/video_core/buffer_cache/buffer.rs
+ shadps4/video_core/buffer_cache/buffer.h	ported	gpu/video_core/buffer_cache/buffer.rs
+-shadps4/video_core/buffer_cache/buffer_cache.cpp	pending	
++shadps4/video_core/buffer_cache/buffer_cache.cpp	ported	gpu/video_core/buffer_cache/buffer_cache_state.rs
+ shadps4/video_core/buffer_cache/buffer_cache.h	ported	gpu/video_core/buffer_cache/buffer_cache_state.rs
+ shadps4/video_core/buffer_cache/fault_manager.cpp	ported	gpu/video_core/buffer_cache/fault_manager.rs
+ shadps4/video_core/buffer_cache/fault_manager.h	ported	gpu/video_core/buffer_cache/fault_manager.rs
+@@ -461,13 +461,13 @@
+ shadps4/video_core/page_manager.h	ported	gpu/video_core/page_manager.rs
+ shadps4/video_core/renderdoc.cpp	ported	gpu/video_core/renderdoc.rs
+ shadps4/video_core/renderdoc.h	ported	gpu/video_core/renderdoc.rs
+-shadps4/video_core/renderer_vulkan/fsr411/fsr411.cpp	pending	
++shadps4/video_core/renderer_vulkan/fsr411/fsr411.cpp	ported	gpu/video_core/renderer_vulkan/fsr411/upscaler.rs
+ shadps4/video_core/renderer_vulkan/fsr411/fsr411.h	ported	gpu/video_core/renderer_vulkan/fsr411/upscaler.rs
+ shadps4/video_core/renderer_vulkan/host_passes/fsr_pass.cpp	ported	gpu/video_core/renderer_vulkan/host_passes/fsr_pass.rs
+ shadps4/video_core/renderer_vulkan/host_passes/fsr_pass.h	ported	gpu/video_core/renderer_vulkan/host_passes/fsr_pass.rs
+ shadps4/video_core/renderer_vulkan/host_passes/pp_pass.cpp	ported	gpu/video_core/renderer_vulkan/host_passes/pp_pass.rs
+ shadps4/video_core/renderer_vulkan/host_passes/pp_pass.h	ported	gpu/video_core/renderer_vulkan/host_passes/pp_pass.rs (host-installed pass calls)
+-shadps4/video_core/renderer_vulkan/liverpool_to_vk.cpp	pending	
++shadps4/video_core/renderer_vulkan/liverpool_to_vk.cpp	ported	gpu/video_core/renderer_vulkan/liverpool_to_vk.rs
+ shadps4/video_core/renderer_vulkan/liverpool_to_vk.h	ported	gpu/video_core/renderer_vulkan/liverpool_to_vk.rs
+ shadps4/video_core/renderer_vulkan/motion_history.h	ported	gpu/video_core/renderer_vulkan/motion_history.rs
+ shadps4/video_core/renderer_vulkan/scene_resolution.h	ported	gpu/video_core/renderer_vulkan/scene_resolution.rs
+@@ -489,7 +489,7 @@
+ shadps4/video_core/renderer_vulkan/vk_draw_prep.h	ported	gpu/video_core/renderer_vulkan/vk_draw_prep.rs
+ shadps4/video_core/renderer_vulkan/vk_frame_capture.cpp	ported	gpu/video_core/renderer_vulkan/vk_frame_capture.rs
+ shadps4/video_core/renderer_vulkan/vk_frame_capture.h	ported	gpu/video_core/renderer_vulkan/vk_frame_capture.rs
+-shadps4/video_core/renderer_vulkan/vk_frame_generation.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_frame_generation.cpp	ported	gpu/video_core/renderer_vulkan/vk_frame_generation.rs
+ shadps4/video_core/renderer_vulkan/vk_frame_generation.h	ported	gpu/video_core/renderer_vulkan/vk_frame_generation.rs
+ shadps4/video_core/renderer_vulkan/vk_fsr4.cpp	ported	gpu/video_core/renderer_vulkan/vk_fsr4.rs
+ shadps4/video_core/renderer_vulkan/vk_fsr4.h	ported	gpu/video_core/renderer_vulkan/vk_fsr4.rs
+@@ -499,11 +499,11 @@
+ shadps4/video_core/renderer_vulkan/vk_graphics_pipeline.h	ported	gpu/video_core/renderer_vulkan/vk_graphics_pipeline.rs
+ shadps4/video_core/renderer_vulkan/vk_indirect_guard.cpp	ported	gpu/video_core/renderer_vulkan/vk_indirect_guard.rs
+ shadps4/video_core/renderer_vulkan/vk_indirect_guard.h	ported	gpu/video_core/renderer_vulkan/vk_indirect_guard.rs
+-shadps4/video_core/renderer_vulkan/vk_instance.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_instance.cpp	ported	gpu/video_core/renderer_vulkan/vk_instance.rs
+ shadps4/video_core/renderer_vulkan/vk_instance.h	ported	gpu/video_core/renderer_vulkan/vk_instance.rs
+ shadps4/video_core/renderer_vulkan/vk_object_motion.cpp	ported	gpu/video_core/renderer_vulkan/vk_object_motion.rs
+ shadps4/video_core/renderer_vulkan/vk_object_motion.h	ported	gpu/video_core/renderer_vulkan/vk_object_motion.rs
+-shadps4/video_core/renderer_vulkan/vk_pipeline_cache.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_pipeline_cache.cpp	ported	gpu/video_core/renderer_vulkan/vk_pipeline_cache.rs
+ shadps4/video_core/renderer_vulkan/vk_pipeline_cache.h	ported	gpu/video_core/renderer_vulkan/vk_pipeline_cache.rs
+ shadps4/video_core/renderer_vulkan/vk_pipeline_common.cpp	ported	gpu/video_core/renderer_vulkan/vk_pipeline_common.rs
+ shadps4/video_core/renderer_vulkan/vk_pipeline_common.h	ported	gpu/video_core/renderer_vulkan/vk_pipeline_common.rs
+@@ -511,13 +511,13 @@
+ shadps4/video_core/renderer_vulkan/vk_pipeline_serialization.h	ported	gpu/video_core/renderer_vulkan/vk_pipeline_serialization.rs
+ shadps4/video_core/renderer_vulkan/vk_platform.cpp	ported	gpu/video_core/renderer_vulkan/vk_platform.rs
+ shadps4/video_core/renderer_vulkan/vk_platform.h	ported	gpu/video_core/renderer_vulkan/vk_platform.rs
+-shadps4/video_core/renderer_vulkan/vk_presenter.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_presenter.cpp	ported	gpu/video_core/renderer_vulkan/vk_presenter.rs
+ shadps4/video_core/renderer_vulkan/vk_presenter.h	ported	gpu/video_core/renderer_vulkan/vk_presenter.rs
+-shadps4/video_core/renderer_vulkan/vk_rasterizer.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_rasterizer.cpp	ported	gpu/video_core/renderer_vulkan/vk_rasterizer.rs
+ shadps4/video_core/renderer_vulkan/vk_rasterizer.h	ported	gpu/video_core/renderer_vulkan/vk_rasterizer.rs
+ shadps4/video_core/renderer_vulkan/vk_resource_pool.cpp	ported	gpu/video_core/renderer_vulkan/vk_resource_pool.rs
+ shadps4/video_core/renderer_vulkan/vk_resource_pool.h	ported	gpu/video_core/renderer_vulkan/vk_resource_pool.rs
+-shadps4/video_core/renderer_vulkan/vk_runtime.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_runtime.cpp	ported	gpu/video_core/renderer_vulkan/vk_runtime.rs
+ shadps4/video_core/renderer_vulkan/vk_runtime.h	ported	gpu/video_core/renderer_vulkan/vk_runtime.rs
+ shadps4/video_core/renderer_vulkan/vk_scene_resolution.cpp	ported	gpu/video_core/renderer_vulkan/vk_scene_resolution.rs
+ shadps4/video_core/renderer_vulkan/vk_scene_resolution.h	ported	gpu/video_core/renderer_vulkan/vk_scene_resolution.rs
+@@ -535,7 +535,7 @@
+ shadps4/video_core/renderer_vulkan/vk_staging_buffer_pool.h	ported	gpu/video_core/renderer_vulkan/vk_staging_buffer_pool.rs
+ shadps4/video_core/renderer_vulkan/vk_swapchain.cpp	ported	gpu/video_core/renderer_vulkan/vk_swapchain.rs
+ shadps4/video_core/renderer_vulkan/vk_swapchain.h	ported	gpu/video_core/renderer_vulkan/vk_swapchain.rs
+-shadps4/video_core/renderer_vulkan/vk_temporal_upscaler.cpp	pending	
++shadps4/video_core/renderer_vulkan/vk_temporal_upscaler.cpp	ported	gpu/video_core/renderer_vulkan/vk_temporal_upscaler.rs
+ shadps4/video_core/renderer_vulkan/vk_temporal_upscaler.h	ported	gpu/video_core/renderer_vulkan/vk_temporal_upscaler.rs
+ shadps4/video_core/texture_cache/blit_helper.cpp	ported	gpu/video_core/texture_cache/blit_helper.rs
+ shadps4/video_core/texture_cache/blit_helper.h	ported	gpu/video_core/texture_cache/blit_helper.rs
+@@ -549,7 +549,7 @@
+ shadps4/video_core/texture_cache/image_view.h	ported	gpu/video_core/texture_cache/image_view.rs
+ shadps4/video_core/texture_cache/sampler.cpp	ported	gpu/video_core/texture_cache/sampler.rs
+ shadps4/video_core/texture_cache/sampler.h	ported	gpu/video_core/texture_cache/sampler.rs
+-shadps4/video_core/texture_cache/texture_cache.cpp	pending	
++shadps4/video_core/texture_cache/texture_cache.cpp	ported	gpu/video_core/texture_cache/cache.rs
+ shadps4/video_core/texture_cache/texture_cache.h	ported	gpu/video_core/texture_cache/cache.rs
+ shadps4/video_core/texture_cache/tile.h	ported	gpu/video_core/texture_cache/tile.rs
+ shadps4/video_core/texture_cache/tile_manager.cpp	ported	gpu/video_core/texture_cache/tile_manager.rs
+@@ -574,7 +574,7 @@
+ shim/bbport_map_direction.h	ported	gpu/shim/bbport_map_direction.rs
+ shim/bbport_map_features.cpp	ported	gpu/shim/bbport_map_features.rs
+ shim/bbport_map_features.h	ported	gpu/shim/bbport_map_features.rs
+-shim/bbport_overlay.cpp	pending	
++shim/bbport_overlay.cpp	ported	gpu/shim/bbport_overlay.rs
+ shim/bbport_overlay.h	ported	gpu/shim/bbport_overlay.rs
+ shim/bbport_process_memory.cpp	ported	gpu/shim/bbport_process_memory.rs
+ shim/bbport_process_memory.h	ported	gpu/shim/bbport_process_memory.rs

@@ -1,0 +1,26 @@
+//! `shadps4/shader_recompiler/ir` ports.
+
+pub mod abstract_syntax_list;
+pub mod attribute;
+pub mod basic_block;
+pub mod breadth_first_search;
+pub mod condition;
+pub mod debug_print;
+pub mod dominance;
+pub mod ir_emitter;
+pub mod microinstruction;
+pub mod opcodes;
+pub mod opcodes_gen;
+pub mod operand_helper;
+pub mod passes;
+pub mod patch;
+pub mod pattern_matching;
+pub mod position;
+pub mod post_order;
+pub mod program;
+pub mod reg;
+pub mod reinterpret;
+pub mod srt_gvn_table;
+pub mod ssa;
+pub mod r#type;
+pub mod value;

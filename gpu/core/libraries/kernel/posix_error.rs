@@ -1,0 +1,138 @@
+//! Posix error codes, ported from `shadps4/core/libraries/kernel/posix_error.h`.
+
+#![allow(non_upper_case_globals)]
+
+pub const POSIX_EPERM: i32 = 1;
+pub const POSIX_ENOENT: i32 = 2;
+pub const POSIX_ESRCH: i32 = 3;
+pub const POSIX_EINTR: i32 = 4;
+pub const POSIX_EIO: i32 = 5;
+pub const POSIX_ENXIO: i32 = 6;
+pub const POSIX_E2BIG: i32 = 7;
+pub const POSIX_ENOEXEC: i32 = 8;
+pub const POSIX_EBADF: i32 = 9;
+pub const POSIX_ECHILD: i32 = 10;
+pub const POSIX_EDEADLK: i32 = 11;
+pub const POSIX_ENOMEM: i32 = 12;
+pub const POSIX_EACCES: i32 = 13;
+pub const POSIX_EFAULT: i32 = 14;
+pub const POSIX_ENOTBLK: i32 = 15;
+pub const POSIX_EBUSY: i32 = 16;
+pub const POSIX_EEXIST: i32 = 17;
+pub const POSIX_EXDEV: i32 = 18;
+pub const POSIX_ENODEV: i32 = 19;
+pub const POSIX_ENOTDIR: i32 = 20;
+pub const POSIX_EISDIR: i32 = 21;
+pub const POSIX_EINVAL: i32 = 22;
+pub const POSIX_ENFILE: i32 = 23;
+pub const POSIX_EMFILE: i32 = 24;
+pub const POSIX_ENOTTY: i32 = 25;
+pub const POSIX_ETXTBSY: i32 = 26;
+pub const POSIX_EFBIG: i32 = 27;
+pub const POSIX_ENOSPC: i32 = 28;
+pub const POSIX_ESPIPE: i32 = 29;
+pub const POSIX_EROFS: i32 = 30;
+pub const POSIX_EMLINK: i32 = 31;
+pub const POSIX_EPIPE: i32 = 32;
+pub const POSIX_EDOM: i32 = 33;
+pub const POSIX_ERANGE: i32 = 34;
+pub const POSIX_EAGAIN: i32 = 35;
+pub const POSIX_EWOULDBLOCK: i32 = 35;
+pub const POSIX_EINPROGRESS: i32 = 36;
+pub const POSIX_EALREADY: i32 = 37;
+pub const POSIX_ENOTSOCK: i32 = 38;
+pub const POSIX_EDESTADDRREQ: i32 = 39;
+pub const POSIX_EMSGSIZE: i32 = 40;
+pub const POSIX_EPROTOTYPE: i32 = 41;
+pub const POSIX_ENOPROTOOPT: i32 = 42;
+pub const POSIX_EPROTONOSUPPORT: i32 = 43;
+pub const POSIX_ESOCKTNOSUPPORT: i32 = 44;
+pub const POSIX_EOPNOTSUPP: i32 = 45;
+pub const POSIX_ENOTSUP: i32 = 45;
+pub const POSIX_EPFNOSUPPORT: i32 = 46;
+pub const POSIX_EAFNOSUPPORT: i32 = 47;
+pub const POSIX_EADDRINUSE: i32 = 48;
+pub const POSIX_EADDRNOTAVAIL: i32 = 49;
+pub const POSIX_ENETDOWN: i32 = 50;
+pub const POSIX_ENETUNREACH: i32 = 51;
+pub const POSIX_ENETRESET: i32 = 52;
+pub const POSIX_ECONNABORTED: i32 = 53;
+pub const POSIX_ECONNRESET: i32 = 54;
+pub const POSIX_ENOBUFS: i32 = 55;
+pub const POSIX_EISCONN: i32 = 56;
+pub const POSIX_ENOTCONN: i32 = 57;
+pub const POSIX_ESHUTDOWN: i32 = 58;
+pub const POSIX_ETOOMANYREFS: i32 = 59;
+pub const POSIX_ETIMEDOUT: i32 = 60;
+pub const POSIX_ECONNREFUSED: i32 = 61;
+pub const POSIX_ELOOP: i32 = 62;
+pub const POSIX_ENAMETOOLONG: i32 = 63;
+pub const POSIX_EHOSTDOWN: i32 = 64;
+pub const POSIX_EHOSTUNREACH: i32 = 65;
+pub const POSIX_ENOTEMPTY: i32 = 66;
+pub const POSIX_EPROCLIM: i32 = 67;
+pub const POSIX_EUSERS: i32 = 68;
+pub const POSIX_EDQUOT: i32 = 69;
+pub const POSIX_ESTALE: i32 = 70;
+pub const POSIX_EREMOTE: i32 = 71;
+pub const POSIX_EBADRPC: i32 = 72;
+pub const POSIX_ERPCMISMATCH: i32 = 73;
+pub const POSIX_EPROGUNAVAIL: i32 = 74;
+pub const POSIX_EPROGMISMATCH: i32 = 75;
+pub const POSIX_EPROCUNAVAIL: i32 = 76;
+pub const POSIX_ENOLCK: i32 = 77;
+pub const POSIX_ENOSYS: i32 = 78;
+pub const POSIX_EFTYPE: i32 = 79;
+pub const POSIX_EAUTH: i32 = 80;
+pub const POSIX_ENEEDAUTH: i32 = 81;
+pub const POSIX_EIDRM: i32 = 82;
+pub const POSIX_ENOMSG: i32 = 83;
+pub const POSIX_EOVERFLOW: i32 = 84;
+pub const POSIX_ECANCELED: i32 = 85;
+pub const POSIX_EILSEQ: i32 = 86;
+pub const POSIX_ENOATTR: i32 = 87;
+pub const POSIX_EDOOFUS: i32 = 88;
+pub const POSIX_EBADMSG: i32 = 89;
+pub const POSIX_EMULTIHOP: i32 = 90;
+pub const POSIX_ENOLINK: i32 = 91;
+pub const POSIX_EPROTO: i32 = 92;
+pub const POSIX_ENOTCAPABLE: i32 = 93;
+pub const POSIX_ECAPMODE: i32 = 94;
+pub const POSIX_ENOBLK: i32 = 95;
+pub const POSIX_EICV: i32 = 96;
+pub const POSIX_ENOPLAYGOENT: i32 = 97;
+pub const POSIX_EREVOKE: i32 = 98;
+pub const POSIX_ESDKVERSION: i32 = 99;
+pub const POSIX_ESTART: i32 = 100;
+pub const POSIX_ESTOP: i32 = 101;
+pub const POSIX_EINVALID2MB: i32 = 102;
+pub const POSIX_ELAST: i32 = 102;
+pub const POSIX_EADHOC: i32 = 160;
+pub const POSIX_EINACTIVEDISABLED: i32 = 163;
+pub const POSIX_ENETNODATA: i32 = 164;
+pub const POSIX_ENETDESC: i32 = 165;
+pub const POSIX_ENETDESCTIMEDOUT: i32 = 166;
+pub const POSIX_ENETINTR: i32 = 167;
+pub const POSIX_ERETURN: i32 = 205;
+pub const POSIX_EFPOS: i32 = 152;
+pub const POSIX_ENODATA: i32 = 1040;
+pub const POSIX_ENOSR: i32 = 1050;
+pub const POSIX_ENOSTR: i32 = 1051;
+pub const POSIX_ENOTRECOVERABLE: i32 = 1056;
+pub const POSIX_EOTHER: i32 = 1062;
+pub const POSIX_EOWNERDEAD: i32 = 1064;
+pub const POSIX_ETIME: i32 = 1074;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_codes_match_the_header() {
+        assert_eq!(POSIX_EPERM, 1);
+        assert_eq!(POSIX_EAGAIN, POSIX_EWOULDBLOCK);
+        assert_eq!(POSIX_ENOTSUP, POSIX_EOPNOTSUPP);
+        assert_eq!(POSIX_ELAST, POSIX_EINVALID2MB);
+        assert_eq!(POSIX_ETIME, 1074);
+    }
+}
