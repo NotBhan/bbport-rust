@@ -46,14 +46,14 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: true
           install: >-
-            mingw-w64-x86_64-rust
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gtk4
-            mingw-w64-x86_64-pkgconf
-            mingw-w64-x86_64-ntldd
+            mingw-w64-ucrt-x86_64-rust
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gtk4
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-ntldd
             zip
 
       - name: Build and package
@@ -68,7 +68,7 @@ jobs:
           cp README.md LICENSE dist/
 
           copy_deps() {
-            ldd "$1" 2>/dev/null | awk '/=> \/mingw64\// {print $3}' | while read -r dll; do
+            ldd "$1" 2>/dev/null | awk '/=> \/ucrt64\// {print $3}' | while read -r dll; do
               name=$(basename "$dll")
               if [ ! -f "dist/$name" ]; then
                 cp "$dll" "dist/$name"
@@ -80,12 +80,12 @@ jobs:
           copy_deps dist/bbport-rs.exe
 
           for path in share/glib-2.0/schemas share/icons lib/gdk-pixbuf-2.0 lib/gtk-4.0; do
-            if [ -d "/mingw64/$path" ]; then
+            if [ -d "/ucrt64/$path" ]; then
               mkdir -p "dist/$(dirname "$path")"
-              cp -R "/mingw64/$path" "dist/$path"
+              cp -R "/ucrt64/$path" "dist/$path"
             fi
           done
-          GLIB_COMPILE_SCHEMAS=/mingw64/bin/glib-compile-schemas
+          GLIB_COMPILE_SCHEMAS=/ucrt64/bin/glib-compile-schemas
           "$GLIB_COMPILE_SCHEMAS" dist/share/glib-2.0/schemas
 
           cat > dist/run-bbport-gui.cmd <<'EOF'
