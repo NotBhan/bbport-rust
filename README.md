@@ -25,19 +25,21 @@ the port's existing `run.sh` with the settings/environment from this launcher.
 
 ## Releases
 
-The first beta is [v0.1.0-beta.1](https://github.com/NotBhan/bbport-rust/releases/tag/v0.1.0-beta.1):
+The current beta is [v0.1.0-beta.2](https://github.com/NotBhan/bbport-rust/releases/tag/v0.1.0-beta.2):
 
-- **Linux x86_64** — tar.gz with `bbport-gui` and `bbport-rs`; install GTK4 4.10+.
-- **Windows x86_64** — zip with the GTK4 runtime bundled; extract and run
-  `run-bbport-gui.cmd` (or `run-bbport-rs.cmd` for the CLI).
+- **Linux x86_64** — `bbport-rust-*-linux-x86_64.AppImage`: self-contained, including the
+  GTK4 runtime and data. Make it executable and run it. Use
+  `--appimage-extract-and-run` if FUSE is unavailable. A plain tar.gz is also provided.
+- **Windows x86_64** — `bbport-rust-*-windows-x86_64-setup.exe`: per-user installer with the
+  GTK4 runtime bundled; no separate GTK installation is needed. A portable zip with
+  `run-bbport-gui.cmd` is also provided.
 
 Both still require a Bloodborne port tree containing `run.sh`; no game files are distributed.
 
 ## Requirements
 
-- Linux x86_64 or Windows 10/11 x86_64.
-- Rust stable (2021 edition) when building.
-- GTK4 development libraries (`gtk4` 4.10+) for building `bbport-gui` on Linux.
+- Linux x86_64 or Windows 10/11 x86_64 to run the launcher.
+- Rust stable (2021 edition) and GTK4 development libraries only when building from source.
 
 On Arch:
 

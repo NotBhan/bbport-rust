@@ -130,13 +130,14 @@ jobs:
           if (!(Test-Path $iscc)) { throw "Inno Setup compiler not found" }
           New-Item -ItemType Directory -Force release | Out-Null
           & $iscc "/DAppVersion=${{ github.ref_name }}" "packaging/windows/installer.iss"
+          Copy-Item release\*.exe .
 
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x86_64
           path: |
             bbport-rust-*-windows-x86_64.zip
-            release/bbport-rust-*-windows-x86_64-setup.exe
+            bbport-rust-*-windows-x86_64-setup.exe
 
   release:
     name: Publish beta release
