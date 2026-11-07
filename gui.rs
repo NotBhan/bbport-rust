@@ -321,7 +321,7 @@ fn build_window(application: &Application) {
     let brand_title = Label::new(Some("Bloodborne PC"));
     brand_title.set_xalign(0.0);
     brand_title.add_css_class("sidebar-title");
-    let brand_subtitle = Label::new(Some("Rust launcher · GTK4"));
+    let brand_subtitle = Label::new(Some(&format!("v{} · GTK4", bbport_launcher::VERSION)));
     brand_subtitle.set_xalign(0.0);
     brand_subtitle.add_css_class("sidebar-subtitle");
     brand.append(&brand_title);

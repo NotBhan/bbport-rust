@@ -31,3 +31,6 @@ patches.json
 # Rust port: build output and the original Python/C/C++ sources kept for reference
 /target/
 legacy/
+
+# Parent-port shader catalog; the standalone Rust crate does not consume it.
+/shader_catalog/

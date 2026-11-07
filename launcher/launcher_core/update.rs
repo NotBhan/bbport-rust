@@ -10,11 +10,10 @@ use serde_json::Value;
 use std::process::Command;
 use thiserror::Error;
 
-pub const VERSION: &str = "1.10.12";
-pub const REPO_URL: &str = "https://github.com/NotBhan/bloodborne-ps2pc";
-pub const RELEASES_API: &str =
-    "https://api.github.com/repos/NotBhan/bloodborne-ps2pc/releases/latest";
-pub const RELEASES_PAGE: &str = "https://github.com/NotBhan/bloodborne-ps2pc/releases/latest";
+pub const VERSION: &str = "0.1.0";
+pub const REPO_URL: &str = "https://github.com/NotBhan/bbport-rust";
+pub const RELEASES_API: &str = "https://api.github.com/repos/NotBhan/bbport-rust/releases/latest";
+pub const RELEASES_PAGE: &str = "https://github.com/NotBhan/bbport-rust/releases/latest";
 
 #[derive(Debug, Error)]
 pub enum UpdateError {
@@ -296,7 +295,7 @@ mod tests {
         let (paths, root) = temp_paths("remembered");
         let cache = UpdateCache {
             checked: 0.0,
-            version: "v1.10.12".into(),
+            version: format!("v{VERSION}"),
             url: None,
             page: RELEASES_PAGE.into(),
         };

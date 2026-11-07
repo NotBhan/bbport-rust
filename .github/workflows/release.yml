@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    name: Linux x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install GTK4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev pkg-config
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp target/release/bbport-gui target/release/bbport-rs dist/
+          cp README.md LICENSE dist/
+          tar -C dist -czf "bbport-rust-${GITHUB_REF_NAME}-linux-x86_64.tar.gz" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: bbport-rust-*-linux-x86_64.tar.gz
+
+  windows:
+    name: Windows x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-rust
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gtk4
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-ntldd
+            zip
+
+      - name: Build and package
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          cargo build --release --locked
+
+          mkdir -p dist
+          cp target/release/bbport-gui.exe target/release/bbport-rs.exe dist/
+          cp README.md LICENSE dist/
+
+          copy_deps() {
+            ldd "$1" 2>/dev/null | awk '/=> \/mingw64\// {print $3}' | while read -r dll; do
+              name=$(basename "$dll")
+              if [ ! -f "dist/$name" ]; then
+                cp "$dll" "dist/$name"
+                copy_deps "$dll"
+              fi
+            done
+          }
+          copy_deps dist/bbport-gui.exe
+          copy_deps dist/bbport-rs.exe
+
+          for path in share/glib-2.0/schemas share/icons lib/gdk-pixbuf-2.0 lib/gtk-4.0; do
+            if [ -d "/mingw64/$path" ]; then
+              mkdir -p "dist/$(dirname "$path")"
+              cp -R "/mingw64/$path" "dist/$path"
+            fi
+          done
+          GLIB_COMPILE_SCHEMAS=/mingw64/bin/glib-compile-schemas
+          "$GLIB_COMPILE_SCHEMAS" dist/share/glib-2.0/schemas
+
+          cat > dist/run-bbport-gui.cmd <<'EOF'
+          @echo off
+          setlocal
+          set "ROOT=%~dp0"
+          set "GSETTINGS_SCHEMA_DIR=%ROOT%share\glib-2.0\schemas"
+          set "GDK_PIXBUF_MODULEDIR=%ROOT%lib\gdk-pixbuf-2.0\2.10.0\loaders"
+          start "" "%ROOT%bbport-gui.exe"
+          EOF
+
+          cat > dist/run-bbport-rs.cmd <<'EOF'
+          @echo off
+          setlocal
+          set "ROOT=%~dp0"
+          "%ROOT%bbport-rs.exe" %*
+          EOF
+
+          ARCHIVE="bbport-rust-${GITHUB_REF_NAME}-windows-x86_64.zip"
+          (cd dist && zip -r "../$ARCHIVE" .)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x86_64
+          path: bbport-rust-*-windows-x86_64.zip
+
+  release:
+    name: Publish beta release
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: bbport-rust ${{ github.ref_name }} (beta)
+          prerelease: true
+          generate_release_notes: true
+          files: release/*
