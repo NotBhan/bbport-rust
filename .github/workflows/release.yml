@@ -21,7 +21,7 @@ jobs:
       - name: Install GTK4 and AppImage tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-4-dev libglib2.0-dev-bin libgdk-pixbuf-2.0-dev-bin pkg-config
+          sudo apt-get install -y libgtk-4-dev libglib2.0-dev-bin libgdk-pixbuf-2.0-dev pkg-config
 
       - name: Build
         run: cargo build --release --locked
