@@ -168,7 +168,33 @@ struct AppState {
 
 type Shared = Rc<RefCell<AppState>>;
 
+#[cfg(windows)]
+fn configure_windows_runtime() {
+    let Ok(executable) = std::env::current_exe() else {
+        return;
+    };
+    let Some(root) = executable.parent() else {
+        return;
+    };
+    std::env::set_var(
+        "GSETTINGS_SCHEMA_DIR",
+        root.join("share").join("glib-2.0").join("schemas"),
+    );
+    std::env::set_var(
+        "GDK_PIXBUF_MODULEDIR",
+        root.join("lib")
+            .join("gdk-pixbuf-2.0")
+            .join("2.10.0")
+            .join("loaders"),
+    );
+    std::env::set_var("XDG_DATA_DIRS", root.join("share"));
+}
+
+#[cfg(not(windows))]
+fn configure_windows_runtime() {}
+
 fn main() -> glib::ExitCode {
+    configure_windows_runtime();
     let application = Application::builder().application_id(APP_ID).build();
     application.connect_activate(build_window);
     application.run()
