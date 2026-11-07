@@ -23,11 +23,21 @@ The GUI resolves the port tree in this order: `BB_PORT_DIR`, the discovered port
 sibling `linux_launcher` / `windows_laucnher` trees containing `run.sh`. **Launch Game** starts
 the port's existing `run.sh` with the settings/environment from this launcher.
 
+## Releases
+
+The first beta is [v0.1.0-beta.1](https://github.com/NotBhan/bbport-rust/releases/tag/v0.1.0-beta.1):
+
+- **Linux x86_64** — tar.gz with `bbport-gui` and `bbport-rs`; install GTK4 4.10+.
+- **Windows x86_64** — zip with the GTK4 runtime bundled; extract and run
+  `run-bbport-gui.cmd` (or `run-bbport-rs.cmd` for the CLI).
+
+Both still require a Bloodborne port tree containing `run.sh`; no game files are distributed.
+
 ## Requirements
 
-- Linux x86_64 with a Vulkan-capable GPU for playing; the launcher itself only needs GTK4.
-- Rust stable (2021 edition).
-- GTK4 development libraries (`gtk4` 4.10+) for `bbport-gui`.
+- Linux x86_64 or Windows 10/11 x86_64.
+- Rust stable (2021 edition) when building.
+- GTK4 development libraries (`gtk4` 4.10+) for building `bbport-gui` on Linux.
 
 On Arch:
 
@@ -42,6 +52,12 @@ cargo build --release
 ./run-rust-gui.sh        # build if needed, then open the GTK4 launcher
 ./run-rust-launcher.sh status
 cargo run --bin bbport-rs -- settings list
+```
+
+Windows uses the launcher-only feature set, which excludes the Unix port modules:
+
+```bash
+cargo build --release --no-default-features
 ```
 
 Useful CLI commands:
