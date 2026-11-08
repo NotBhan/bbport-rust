@@ -170,6 +170,12 @@ A safety/robustness pass over the port found and fixed these issues:
   Windows-style environment also receives `BB_FPS_LIMIT`.
 - `zipread::extract_to` now uses checked local-header offset arithmetic, and `fsutil::atomic_write`
   has a Windows replace fallback (Windows `rename` does not overwrite an existing file).
+- `get_bda_pointer` in the SPIR-V shader emitter now masks the guest address to the 40-bit
+  `BufferCache::ADDRESS_SPACE_BITS` range before indexing the BDA and fault buffers. High or
+  sign-extended bits previously produced an out-of-range GPU read, which RADV reported as a
+  GPUVM fault at `0x80012b739000` and a lost device. Fixed in both the active C++ renderer and
+  the Rust emitter; regression test: `bda_addresses_are_masked_to_40_bits`.
+
 
 Remaining latent, not wired into the game binary: `bbport_write_log`'s fault-handler dump still
 allocates and locks (opt-in `BB_WRITE_LOG`), and the Rust `EqueueApi` trait remains a safe
@@ -182,7 +188,7 @@ cargo test
 cargo build --release
 ```
 
-Latest run: 1135 tests, `cargo fmt --check` and `cargo clippy --all-targets` clean.
+Latest run: 1136 tests, `cargo fmt --check` and `cargo clippy --all-targets` clean.
 
 ## CLI
 

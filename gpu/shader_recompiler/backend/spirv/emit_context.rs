@@ -408,6 +408,9 @@ impl EmitContext<'_> {
 }
 
 /// `Shader::Backend::SPIRV::EmitContext`.
+/// Guest GPU addresses index a 40-bit BDA page table (`BufferCache::ADDRESS_SPACE_BITS`).
+const BDA_ADDRESS_MASK: u64 = (1u64 << 40) - 1;
+
 pub struct EmitContext<'a> {
     pub module: Module,
     pub info: Rc<RefCell<Info>>,
@@ -2630,7 +2633,11 @@ impl EmitContext<'_> {
         let available_label = self.OpLabel();
         let merge_label = self.OpLabel();
 
-        let page = self.OpShiftRightLogical(u64_ty, address, page_shift);
+        // Guest GPU addresses are 40-bit (BufferCache::ADDRESS_SPACE_BITS). Mask before
+        // indexing: high/sign-extended bits otherwise index past the BDA and fault buffers.
+        let address_mask = self.Constant(u64_ty, BDA_ADDRESS_MASK);
+        let bda_address = self.OpBitwiseAnd(u64_ty, address, address_mask);
+        let page = self.OpShiftRightLogical(u64_ty, bda_address, page_shift);
         let u32_ty = types.U32[1];
         let page32 = self.OpUConvert(u32_ty, page);
         let bda_buffer = self.buffers[self.bda_pagetable_index].clone();
@@ -2663,7 +2670,7 @@ impl EmitContext<'_> {
         self.OpBranch(merge_label);
 
         self.AddExistingLabel(available_label);
-        let offset_in_bda = self.OpBitwiseAnd(u64_ty, address, page_mask);
+        let offset_in_bda = self.OpBitwiseAnd(u64_ty, bda_address, page_mask);
         let addr = self.OpIAdd(u64_ty, bda, offset_in_bda);
         self.OpBranch(merge_label);
 
@@ -2912,5 +2919,16 @@ mod tests {
             .position(|pair| opcode(pair[0]) == spv::Op::AccessChain && pair[1] == result_type)
             .expect("an access chain");
         assert_eq!(words[access_at] >> 16, 5, "type, result, base, one index");
+    }
+}
+
+#[cfg(test)]
+mod bda_mask_tests {
+    use super::BDA_ADDRESS_MASK;
+
+    #[test]
+    fn bda_addresses_are_masked_to_40_bits() {
+        assert_eq!(BDA_ADDRESS_MASK, (1u64 << 40) - 1);
+        assert_eq!(0x0001_2b73_9000u64 & BDA_ADDRESS_MASK, 0x0001_2b73_9000);
     }
 }
