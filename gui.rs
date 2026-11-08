@@ -934,7 +934,8 @@ fn build_controller_page(state: &Shared) -> ScrolledWindow {
     section(&content, "Keyboard bindings");
     note(
         &content,
-        "Values live in bbport.ini as key_<action>; empty means the default below.",
+        "Values live in bbport.ini as key_<action>; empty means the default below. \
+         While locked on, tap Look Left/Right or use the mouse wheel to switch targets.",
     );
     for (action, label, default) in KEYBINDINGS {
         ini_entry(&content, label, format!("key_{action}"), default, state);
