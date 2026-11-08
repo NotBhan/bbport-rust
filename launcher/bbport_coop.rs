@@ -455,7 +455,7 @@ impl Host {
         let stamp = timestamp();
         let shadnet_log = fs::File::create(logs.join(format!("shadnet-{stamp}.log")))?;
         self.processes.push(
-            Command::new(shadnet.join("shadnet.exe"))
+            windows_program(&shadnet.join("shadnet.exe"))
                 .current_dir(&shadnet)
                 .env("SHADNET_BLOODBORNE_SEAMLESS_COOP", "1")
                 .stdout(Stdio::from(shadnet_log))
@@ -472,7 +472,7 @@ impl Host {
         std::thread::sleep(std::time::Duration::from_secs(2));
         let game_log = fs::File::create(logs.join(format!("gameserver-{stamp}.log")))?;
         self.processes.push(
-            Command::new(server.join("BBSC-GameServer.exe"))
+            windows_program(&server.join("BBSC-GameServer.exe"))
                 .args([
                     "--shadnet",
                     address,
@@ -594,6 +594,85 @@ pub fn read_invite(code: &str) -> Result<(String, String), CoopError> {
         .ok_or_else(|| message("That invite code is damaged; ask the host to copy it again."))?;
     let key = data.get("k").and_then(Value::as_str).unwrap_or_default();
     Ok((address.to_string(), key.to_string()))
+}
+
+// --- Accounts ------------------------------------------------------------------------------
+
+/// Run a BBSC `.exe`; on Linux the official Windows packages run through Wine.
+fn windows_program(path: &Path) -> Command {
+    #[cfg(windows)]
+    {
+        Command::new(path)
+    }
+    #[cfg(not(windows))]
+    {
+        let mut command = Command::new("wine");
+        command.arg(path);
+        command
+    }
+}
+
+fn account_tool(address: &str, arguments: &[&str]) -> Result<String, CoopError> {
+    let tool = package_dir("client")?
+        .join("account")
+        .join("shadnet-sample.exe");
+    if !tool.is_file() {
+        return Err(message("Set up co-op first (the BBSC package is missing)."));
+    }
+    let output = windows_program(&tool)
+        .arg(address)
+        .arg(SHADNET_PORT.to_string())
+        .args(arguments)
+        .current_dir(tool.parent().unwrap_or(Path::new(".")))
+        .output()
+        .map_err(|error| message(format!("Could not create the co-op account: {error}")))?;
+    Ok(format!(
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    ))
+}
+
+/// Create or verify the account on a host's shadnet server.
+pub fn create_account(
+    address: &str,
+    key: &str,
+    name: &str,
+    password: &str,
+) -> Result<&'static str, CoopError> {
+    if !(3..=16).contains(&name.len())
+        || !name
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_'))
+    {
+        return Err(message("A co-op name is 3-16 letters, numbers, - or _."));
+    }
+    if password.len() < 4 {
+        return Err(message(
+            "Choose a password of at least 4 characters (one you use nowhere else).",
+        ));
+    }
+    let login = account_tool(address, &["login", name, password])?;
+    if login.contains("[login] OK") {
+        return Ok("signed in");
+    }
+    let email = format!("{name}@bbport-coop.invalid");
+    let mut arguments = vec!["register", name, password, email.as_str()];
+    if !key.is_empty() {
+        arguments.push(key);
+    }
+    let registered = account_tool(address, &arguments)?;
+    if !registered.contains("Account created successfully") {
+        return Err(message(
+            "The host's server did not create the account (the name may be taken, or the invite              is from another host).",
+        ));
+    }
+    if !account_tool(address, &["login", name, password])?.contains("[login] OK") {
+        return Err(message(
+            "The account was created but does not sign in; try another name.",
+        ));
+    }
+    Ok("created")
 }
 
 // --- The game ------------------------------------------------------------------------------
@@ -726,6 +805,14 @@ pub fn backup_saves(user_dir: &Path) -> Result<Option<PathBuf>, CoopError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn account_names_and_passwords_are_validated() {
+        let error = create_account("100.64.0.1", "", "x", "password").unwrap_err();
+        assert!(error.to_string().contains("3-16"));
+        let error = create_account("100.64.0.1", "", "hunter", "x").unwrap_err();
+        assert!(error.to_string().contains("at least 4"));
+    }
 
     #[test]
     fn invites_round_trip() {

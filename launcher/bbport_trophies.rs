@@ -116,7 +116,7 @@ pub fn load_trophy_report(user_dir: &Path, game_dir: Option<&Path>) -> TrophyRep
     let (data, problem) = read_json(&cache);
     let Some(data) = data else {
         let reason = if problem == Some("missing") {
-            "No trophy cache yet. Import keys.json in Settings -> Game & Data, then launch the game once."
+            "No trophy cache yet. Launch the game once (the trophy key is already installed)."
         } else {
             "Trophy metadata is malformed."
         };
@@ -308,7 +308,7 @@ mod tests {
         let dir = temp_dir("missing");
         let report = load_trophy_report(&dir, None);
         assert!(!report.metadata_available);
-        assert!(report.reason.unwrap().contains("Import keys.json"));
+        assert!(report.reason.unwrap().contains("Launch the game once"));
         let _ = std::fs::remove_dir_all(dir);
     }
 

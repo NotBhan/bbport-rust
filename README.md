@@ -12,7 +12,10 @@ Rust reimplementation of the launcher/runtime modules.
 ## What this repository contains
 
 - `bbport-gui` — the GTK4 launcher. It has a sidebar with Play, Display, Graphics, Upscaling,
-  Performance, Compatibility, Controller, Game & Data, Launcher, Trophies and Diagnostics.
+  Performance, Compatibility, Controller, Co-op, Game & Data, Launcher, Trophies and Diagnostics.
+  Co-op uses BBSC with downloadable, checksum-verified packages, hosting, invite codes and
+  account setup. The trophy page separates unlocked/locked entries with sorting, and the release
+  trophy key is embedded so no manual `keys.json` import is needed.
 - `bbport-rs` — the headless CLI: readiness, settings, INI, mods, patches, update checks and
   launch.
 - `launcher/`, `scripts/`, `src/` and `gpu/` — the progressively ported launcher, package,

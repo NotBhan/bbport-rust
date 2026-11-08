@@ -3,6 +3,7 @@
 use crate::fsutil::{atomic_write, writable};
 use crate::paths::expand;
 use crate::sfo::{self, SfoValue};
+use crate::Paths;
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::fs;
@@ -59,6 +60,10 @@ pub enum ReadinessError {
     Io(#[from] io::Error),
 }
 
+/// Bloodborne's release trophy key. Baking it in means a new install can decrypt the local
+/// trophy pack without asking the player to import `keys.json` manually.
+pub const BAKED_TROPHY_KEYS: &str = r#"{"TrophyKeySet":{"ReleaseTrophyKey":"21F41A6BAD8A1D3ECA7AD586C101B7A9","CUSA00207":"21F41A6BAD8A1D3ECA7AD586C101B7A9"}}"#;
+
 /// A `ReleaseTrophyKey` is exactly 32 hexadecimal characters.
 pub fn valid_trophy_key(value: &str) -> bool {
     value.len() == 32 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
@@ -95,6 +100,20 @@ pub fn read_trophy_key(path: &Path) -> Option<String> {
 fn write_trophy_key(text: &[u8], destination: &Path) -> io::Result<PathBuf> {
     atomic_write(destination, text)?;
     Ok(destination.to_path_buf())
+}
+
+/// Install the baked key when neither the canonical nor the active saves folder has one, then
+/// keep the two copies synchronized. Existing player keys are never overwritten.
+pub fn ensure_baked_trophy_key(
+    paths: &Paths,
+    user_dir: &Path,
+) -> Result<SyncOutcome, ReadinessError> {
+    let canonical = paths.trophy_keys_path();
+    let user_key = user_dir.join("keys.json");
+    if read_trophy_key(&canonical).is_none() && read_trophy_key(&user_key).is_none() {
+        write_trophy_key(BAKED_TROPHY_KEYS.as_bytes(), &canonical)?;
+    }
+    sync_trophy_keys(user_dir, &canonical)
 }
 
 /// Import a trophy keys file into the saves folder, and optionally the launcher's canonical
@@ -272,7 +291,7 @@ fn check_trophies(game: Option<&Path>, user_dir: &Path, result: &mut Vec<Check>)
         )
     } else {
         (
-            "Pack found; import a valid keys.json to show trophy names.".to_string(),
+            "Pack found; launch the game once to build the trophy cache.".to_string(),
             Level::Warning,
         )
     };
@@ -436,6 +455,25 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("bbport-rs-readiness-{tag}-{stamp}"));
         std::fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn baked_key_is_installed_when_the_player_has_none() {
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("bbport-rs-baked-key-{stamp}"));
+        std::fs::create_dir_all(root.join("config")).unwrap();
+        let paths = Paths::with_config_dir(root.join("launcher"), root.join("config"));
+        let user = root.join("user");
+        ensure_baked_trophy_key(&paths, &user).unwrap();
+        assert_eq!(
+            read_trophy_key(&paths.trophy_keys_path()).as_deref(),
+            Some("21F41A6BAD8A1D3ECA7AD586C101B7A9")
+        );
+        assert!(read_trophy_key(&user.join("keys.json")).is_some());
+        let _ = std::fs::remove_dir_all(root);
     }
 
     #[test]

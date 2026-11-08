@@ -83,6 +83,7 @@ fn run(argv: Vec<String>) -> i32 {
         "ini" => cmd_ini(&paths, &rest),
         "mods" => cmd_mods(&paths),
         "patches" => cmd_patches(&paths),
+        "coop" => cmd_coop(&paths, &rest),
         "vulkan" => cmd_vulkan(),
         "check-update" => cmd_check_update(&paths, cli.json),
         "launch" | "play" => cmd_launch(&paths),
@@ -395,6 +396,95 @@ fn cmd_patches(paths: &Paths) -> i32 {
     0
 }
 
+fn cmd_coop(paths: &Paths, args: &[String]) -> i32 {
+    let action = args.first().map(String::as_str).unwrap_or("status");
+    match action {
+        "status" => {
+            for kind in ["client", "server"] {
+                match bbport_launcher::coop::installed(kind) {
+                    Ok(true) => println!("{kind}: installed"),
+                    Ok(false) => println!("{kind}: not installed"),
+                    Err(error) => println!("{kind}: {error}"),
+                }
+            }
+            println!("data: {}", bbport_launcher::coop::coop_dir().display());
+            match bbport_launcher::coop::host_address() {
+                (Some(address), Some(network)) => println!("host: {address} ({network})"),
+                (Some(address), None) => println!("host: {address}"),
+                (None, _) => println!("host: none"),
+            }
+            0
+        }
+        "setup" => {
+            let fetcher = CurlFetcher;
+            for kind in ["client", "server"] {
+                match bbport_launcher::coop::download(
+                    kind,
+                    &fetcher,
+                    Some(&|text| {
+                        eprintln!("{text}");
+                    }),
+                ) {
+                    Ok(path) => println!("{kind}: {}", path.display()),
+                    Err(error) => {
+                        eprintln!("bbport-rs: {kind} setup failed: {error}");
+                        return 1;
+                    }
+                }
+            }
+            0
+        }
+        "invite" => {
+            let address = args
+                .get(1)
+                .cloned()
+                .or_else(|| bbport_launcher::coop::host_address().0);
+            let Some(address) = address else {
+                eprintln!("bbport-rs: no host address; connect Tailscale or pass one");
+                return 1;
+            };
+            match bbport_launcher::coop::registration_key(&paths.port_dir) {
+                Ok(key) => {
+                    println!("{}", bbport_launcher::coop::make_invite(&address, &key));
+                    0
+                }
+                Err(error) => {
+                    eprintln!("bbport-rs: cannot make invite: {error}");
+                    1
+                }
+            }
+        }
+        "account" => {
+            let (Some(code), Some(name), Some(password)) = (args.get(1), args.get(2), args.get(3))
+            else {
+                eprintln!("bbport-rs: coop account needs INVITE NAME PASSWORD");
+                return 2;
+            };
+            let (address, key) = match bbport_launcher::coop::read_invite(code) {
+                Ok(parts) => parts,
+                Err(error) => {
+                    eprintln!("bbport-rs: {error}");
+                    return 1;
+                }
+            };
+            match bbport_launcher::coop::create_account(&address, &key, name, password) {
+                Ok(result) => {
+                    println!("{result}: {name} on {address}");
+                    0
+                }
+                Err(error) => {
+                    eprintln!("bbport-rs: {error}");
+                    1
+                }
+            }
+        }
+        other => {
+            eprintln!("bbport-rs: unknown coop action `{other}`");
+            2
+        }
+    }
+}
+
 fn cmd_vulkan() -> i32 {
     let mut env: std::collections::BTreeMap<String, String> = std::env::vars().collect();
     match bbport_launcher::vulkan::configure(&mut env) {
@@ -416,6 +506,8 @@ fn cmd_vulkan() -> i32 {
 
 fn cmd_launch(paths: &Paths) -> i32 {
     let settings = Settings::load(paths);
+    let saves = readiness::saves_dir(&settings, &paths.data_dir);
+    let _ = readiness::ensure_baked_trophy_key(paths, &saves);
     match process::launch(&settings, paths) {
         Ok(()) => 0,
         Err(error) => {

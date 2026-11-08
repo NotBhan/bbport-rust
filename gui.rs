@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use bbport_launcher::ini::{Ini, CHEATS_AND_TWEAKS, EFFECTS, ENHANCEMENTS};
-use bbport_launcher::{assets, process, readiness, sfo, trophies, Paths, Settings};
+use bbport_launcher::{assets, coop, process, readiness, sfo, trophies, Paths, Settings};
 use gtk::prelude::*;
 use gtk::{
     gdk, gio, glib, Application, ApplicationWindow, Box as GtkBox, Button, CssProvider, DropDown,
@@ -41,6 +41,9 @@ headerbar { background-color: #12151b; border-bottom: 1px solid #242a35; }
 .status-error { background-color: #3b1a1d; color: #ef7c86; }
 .actionbar { background-color: #12151b; border-top: 1px solid #242a35; padding: 10px 14px; }
 .status-text { color: #8b93a3; font-size: 11px; }
+.trophy-row { background-color: #1c222c; border-radius: 8px; padding: 8px 10px; }
+.trophy-row.trophy-locked { opacity: 0.55; }
+.trophy-grade { color: #e6c15c; font-weight: 700; }
 "#;
 
 fn install_css() {
@@ -164,6 +167,7 @@ struct AppState {
     settings: Settings,
     ini: Ini,
     ini_path: PathBuf,
+    coop: coop::Host,
 }
 
 type Shared = Rc<RefCell<AppState>>;
@@ -231,11 +235,14 @@ fn build_window(application: &Application) {
     let settings = Settings::load(&paths);
     let ini_path = paths.ini_path();
     let ini = Ini::load(&ini_path);
+    let saves = readiness::saves_dir(&settings, &paths.data_dir);
+    let _ = readiness::ensure_baked_trophy_key(&paths, &saves);
     let state: Shared = Rc::new(RefCell::new(AppState {
         paths,
         settings,
         ini,
         ini_path,
+        coop: coop::Host::new(),
     }));
 
     let window = ApplicationWindow::builder()
@@ -305,6 +312,13 @@ fn build_window(application: &Application) {
         "controller",
         "Controller",
         "input-gaming-symbolic",
+    );
+    add_page(
+        &stack,
+        &build_coop_page(&state),
+        "coop",
+        "Co-op",
+        "emblem-shared-symbolic",
     );
     add_page(
         &stack,
@@ -411,6 +425,8 @@ fn build_window(application: &Application) {
                 ));
                 return;
             }
+            let saves = readiness::saves_dir(&state.settings, &state.paths.data_dir);
+            let _ = readiness::ensure_baked_trophy_key(&state.paths, &saves);
             match process::game_command(&state.settings, &state.paths).spawn() {
                 Ok(child) => status.set_text(&format!("Game started (pid {}).", child.id())),
                 Err(error) => status.set_text(&format!("Could not start the game: {error}")),
@@ -911,6 +927,296 @@ fn build_controller_page(state: &Shared) -> ScrolledWindow {
     scroll
 }
 
+fn coop_probe(paths: &Paths) -> PathBuf {
+    for relative in ["out/bb-probe", "bin/bb-probe"] {
+        let candidate = paths.port_dir.join(relative);
+        if candidate.is_file() {
+            return candidate;
+        }
+    }
+    paths.port_dir.join("out").join("bb-probe")
+}
+
+fn coop_game_command(
+    state: &AppState,
+    address: &str,
+    name: &str,
+    password: &str,
+) -> Result<std::process::Command, String> {
+    let mut environment = bbport_launcher::env::game_environment(&state.settings, &state.paths);
+    let saves = readiness::saves_dir(&state.settings, &state.paths.data_dir);
+    let _ = readiness::ensure_baked_trophy_key(&state.paths, &saves);
+    let backup = coop::backup_saves(&saves).ok().flatten();
+    let probe = coop_probe(&state.paths);
+    coop::co_op_environment(
+        &mut environment,
+        address,
+        name,
+        password,
+        &probe,
+        backup.as_deref(),
+    )
+    .map_err(|error| error.to_string())?;
+    let mut command = process::game_command(&state.settings, &state.paths);
+    for (key, value) in environment {
+        command.env(key, value);
+    }
+    Ok(command)
+}
+
+fn coop_status_text(_state: &AppState) -> String {
+    let client = coop::installed("client").unwrap_or(false);
+    let server = coop::installed("server").unwrap_or(false);
+    let (address, network) = coop::host_address();
+    let mut text = format!(
+        "BBSC client: {}\nBBSC server: {}\nCo-op data: {}",
+        if client { "installed" } else { "not installed" },
+        if server { "installed" } else { "not installed" },
+        coop::coop_dir().display()
+    );
+    match address {
+        Some(address) => text.push_str(&format!(
+            "\nHost address: {address} ({})",
+            network.unwrap_or("local")
+        )),
+        None => text.push_str("\nHost address: none (connect Tailscale or a home network)"),
+    }
+    text
+}
+
+fn build_coop_page(state: &Shared) -> ScrolledWindow {
+    let (scroll, content) = scrolled_page();
+    section(&content, "Seamless co-op (BBSC)");
+    note(
+        &content,
+        "Experimental: BBSC keeps a co-op session alive through deaths, lamps, areas and bosses. \
+         The official BBSC packages are downloaded on demand and checked against their published \
+         SHA-256; no game files or BBSC binaries are bundled.",
+    );
+
+    let status = Label::new(Some(&coop_status_text(&state.borrow())));
+    status.set_xalign(0.0);
+    status.set_wrap(true);
+    status.set_selectable(true);
+    status.add_css_class("note");
+    content.append(&status);
+
+    let setup = Button::with_label("Download / update BBSC packages");
+    content.append(&setup);
+
+    section(&content, "Host");
+    let address = Label::new(Some(
+        &coop::host_address()
+            .0
+            .unwrap_or_else(|| "No network address".into()),
+    ));
+    address.set_xalign(0.0);
+    address.set_selectable(true);
+    address.add_css_class("note");
+    content.append(&address);
+
+    let name = Entry::new();
+    name.set_placeholder_text(Some("Co-op name (3-16 letters, numbers, - or _)"));
+    name.set_text(state.borrow().settings.get_str("player_name").as_str());
+    content.append(&row("Co-op name", &name));
+
+    let password = Entry::new();
+    password.set_placeholder_text(Some("Password (at least 4 characters)"));
+    password.set_visibility(false);
+    content.append(&row("Password", &password));
+
+    let host_actions = GtkBox::new(Orientation::Horizontal, 8);
+    let start = Button::with_label("Start hosting");
+    let stop = Button::with_label("Stop hosting");
+    host_actions.append(&start);
+    host_actions.append(&stop);
+    content.append(&host_actions);
+
+    let invite = Entry::new();
+    invite.set_placeholder_text(Some("Invite code (BBCOOP-…)"));
+    invite.set_hexpand(true);
+    let copy = Button::with_label("Copy invite");
+    let invite_row = GtkBox::new(Orientation::Horizontal, 8);
+    invite_row.append(&invite);
+    invite_row.append(&copy);
+    content.append(&row("Invite", &invite_row));
+
+    section(&content, "Join");
+    note(
+        &content,
+        "Paste the host's invite, create the account on their server, then launch the game. \
+         Hosts can use the same buttons after starting hosting.",
+    );
+    let join_actions = GtkBox::new(Orientation::Horizontal, 8);
+    let account = Button::with_label("Create account");
+    let launch = Button::with_label("Launch co-op");
+    launch.add_css_class("suggested-action");
+    join_actions.append(&account);
+    join_actions.append(&launch);
+    content.append(&join_actions);
+
+    let action_status = Label::new(None);
+    action_status.set_xalign(0.0);
+    action_status.set_wrap(true);
+    action_status.add_css_class("note");
+    content.append(&action_status);
+
+    {
+        let state = state.clone();
+        let status = status.clone();
+        setup.connect_clicked(move |_| {
+            status.set_text("Downloading BBSC client…");
+            let fetcher = bbport_launcher::update::CurlFetcher;
+            if let Err(error) =
+                coop::download("client", &fetcher, Some(&|text| status.set_text(text)))
+            {
+                status.set_text(&format!("Client setup failed: {error}"));
+                return;
+            }
+            status.set_text("Downloading BBSC server…");
+            if let Err(error) =
+                coop::download("server", &fetcher, Some(&|text| status.set_text(text)))
+            {
+                status.set_text(&format!("Server setup failed: {error}"));
+                return;
+            }
+            status.set_text(&coop_status_text(&state.borrow()));
+        });
+    }
+
+    {
+        let state = state.clone();
+        let status = status.clone();
+        let name = name.clone();
+        let password = password.clone();
+        let invite = invite.clone();
+        let address = address.clone();
+        start.connect_clicked(move |_| {
+            let (Some(host), _) = coop::host_address() else {
+                status.set_text("No host address: connect Tailscale or a home network first.");
+                return;
+            };
+            let port_dir = state.borrow().paths.port_dir.clone();
+            let result = state.borrow_mut().coop.start(&host, &port_dir);
+            match result {
+                Ok(()) => {
+                    address.set_text(&host);
+                    let invite_text = match coop::registration_key(&port_dir) {
+                        Ok(key) => coop::make_invite(&host, &key),
+                        Err(error) => {
+                            status
+                                .set_text(&format!("Servers started, but no invite key: {error}"));
+                            return;
+                        }
+                    };
+                    invite.set_text(&invite_text);
+                    let account_result = if name.text().is_empty() || password.text().is_empty() {
+                        None
+                    } else {
+                        Some(coop::create_account(
+                            &host,
+                            &coop::read_invite(&invite_text)
+                                .map(|(_, key)| key)
+                                .unwrap_or_default(),
+                            name.text().as_str(),
+                            password.text().as_str(),
+                        ))
+                    };
+                    match account_result {
+                        Some(Err(error)) => status
+                            .set_text(&format!("Hosting on {host}; account setup failed: {error}")),
+                        _ => status.set_text(&format!(
+                            "Hosting on {host}. Share the invite code with your party."
+                        )),
+                    }
+                }
+                Err(error) => status.set_text(&format!("Could not start hosting: {error}")),
+            }
+        });
+    }
+
+    {
+        let state = state.clone();
+        let status = status.clone();
+        stop.connect_clicked(move |_| {
+            state.borrow_mut().coop.stop();
+            status.set_text("Hosting stopped.");
+        });
+    }
+
+    {
+        let invite = invite.clone();
+        let status = status.clone();
+        copy.connect_clicked(move |_| {
+            if let Some(display) = gdk::Display::default() {
+                display.clipboard().set_text(invite.text().as_str());
+                status.set_text("Invite copied to the clipboard.");
+            }
+        });
+    }
+
+    {
+        let action_status = action_status.clone();
+        let invite = invite.clone();
+        let name = name.clone();
+        let password = password.clone();
+        account.connect_clicked(move |_| {
+            let code = invite.text();
+            let (address, key) = match coop::read_invite(&code) {
+                Ok(parts) => parts,
+                Err(error) => {
+                    action_status.set_text(&format!("Invalid invite: {error}"));
+                    return;
+                }
+            };
+            let name = name.text().to_string();
+            let password = password.text().to_string();
+            match coop::create_account(&address, &key, &name, &password) {
+                Ok(result) => action_status.set_text(&format!("Co-op account: {result}.")),
+                Err(error) => action_status.set_text(&format!("Account setup failed: {error}")),
+            }
+        });
+    }
+
+    {
+        let state = state.clone();
+        let action_status = action_status.clone();
+        let invite = invite.clone();
+        let name = name.clone();
+        let password = password.clone();
+        launch.connect_clicked(move |_| {
+            let code = invite.text();
+            let (address, _) = match coop::read_invite(&code) {
+                Ok(parts) => parts,
+                Err(error) => {
+                    action_status.set_text(&format!("Invalid invite: {error}"));
+                    return;
+                }
+            };
+            let name = name.text().to_string();
+            let password = password.text().to_string();
+            if name.is_empty() || password.is_empty() {
+                action_status.set_text("Enter the co-op name and password first.");
+                return;
+            }
+            let state = state.borrow();
+            match coop_game_command(&state, &address, &name, &password) {
+                Ok(mut command) => match command.spawn() {
+                    Ok(child) => {
+                        action_status.set_text(&format!("Co-op game started (pid {}).", child.id()))
+                    }
+                    Err(error) => {
+                        action_status.set_text(&format!("Could not start co-op: {error}"))
+                    }
+                },
+                Err(error) => action_status.set_text(&format!("Could not prepare co-op: {error}")),
+            }
+        });
+    }
+
+    scroll
+}
+
 fn build_game_page(state: &Shared) -> ScrolledWindow {
     let (scroll, content) = scrolled_page();
     section(&content, "Folders");
@@ -989,9 +1295,113 @@ fn build_launcher_page(state: &Shared) -> ScrolledWindow {
     scroll
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TrophySort {
+    Default,
+    UnlockTime,
+    Name,
+}
+
+fn trophy_row(entry: &trophies::TrophyEntry, unlocked: bool) -> GtkBox {
+    let row = GtkBox::new(Orientation::Horizontal, 10);
+    row.add_css_class("trophy-row");
+    if !unlocked {
+        row.add_css_class("trophy-locked");
+    }
+    let grade = Label::new(Some(&format!("[{}]", entry.grade)));
+    grade.set_width_chars(4);
+    grade.add_css_class("trophy-grade");
+    let text = GtkBox::new(Orientation::Vertical, 2);
+    let name = Label::new(None);
+    name.set_markup(&format!("<b>{}</b>", glib::markup_escape_text(&entry.name)));
+    name.set_xalign(0.0);
+    name.set_wrap(true);
+    let description = Label::new(Some(&entry.description));
+    description.set_xalign(0.0);
+    description.set_wrap(true);
+    description.add_css_class("note");
+    text.append(&name);
+    if !entry.description.is_empty() {
+        text.append(&description);
+    }
+    let status = Label::new(Some(if unlocked { "unlocked" } else { "locked" }));
+    status.add_css_class(if unlocked { "status-ready" } else { "note" });
+    row.append(&grade);
+    row.append(&text);
+    row.append(&status);
+    row
+}
+
+fn render_trophies(
+    report: &trophies::TrophyReport,
+    sort: TrophySort,
+    unlocked_box: &GtkBox,
+    locked_box: &GtkBox,
+) {
+    while let Some(child) = unlocked_box.first_child() {
+        unlocked_box.remove(&child);
+    }
+    while let Some(child) = locked_box.first_child() {
+        locked_box.remove(&child);
+    }
+    let mut unlocked: Vec<&trophies::TrophyEntry> =
+        report.entries.iter().filter(|entry| entry.earned).collect();
+    let mut locked: Vec<&trophies::TrophyEntry> = report
+        .entries
+        .iter()
+        .filter(|entry| !entry.earned)
+        .collect();
+    match sort {
+        TrophySort::Default => {
+            unlocked.sort_by_key(|entry| entry.id);
+            locked.sort_by_key(|entry| entry.id);
+        }
+        TrophySort::UnlockTime => {
+            unlocked.sort_by(|left, right| {
+                right
+                    .unlocked_at
+                    .unwrap_or(0)
+                    .cmp(&left.unlocked_at.unwrap_or(0))
+                    .then(left.id.cmp(&right.id))
+            });
+            locked.sort_by_key(|entry| entry.id);
+        }
+        TrophySort::Name => {
+            let by_name = |left: &&trophies::TrophyEntry, right: &&trophies::TrophyEntry| {
+                left.name
+                    .to_lowercase()
+                    .cmp(&right.name.to_lowercase())
+                    .then(left.id.cmp(&right.id))
+            };
+            unlocked.sort_by(by_name);
+            locked.sort_by(by_name);
+        }
+    }
+    if unlocked.is_empty() {
+        let empty = Label::new(Some("No unlocked trophies yet."));
+        empty.set_xalign(0.0);
+        empty.add_css_class("note");
+        unlocked_box.append(&empty);
+    } else {
+        for entry in unlocked {
+            unlocked_box.append(&trophy_row(entry, true));
+        }
+    }
+    if locked.is_empty() {
+        let empty = Label::new(Some("No locked trophies in this set."));
+        empty.set_xalign(0.0);
+        empty.add_css_class("note");
+        locked_box.append(&empty);
+    } else {
+        for entry in locked {
+            locked_box.append(&trophy_row(entry, false));
+        }
+    }
+}
+
 fn build_trophies_page(state: &Shared) -> ScrolledWindow {
     let (scroll, content) = scrolled_page();
-    section(&content, "Local trophies");
+    section(&content, "Trophy collection");
     let state = state.borrow();
     let saves = readiness::saves_dir(&state.settings, &state.paths.data_dir);
     let game = state.settings.game_dir();
@@ -999,37 +1409,49 @@ fn build_trophies_page(state: &Shared) -> ScrolledWindow {
         &saves,
         (!game.as_os_str().is_empty()).then_some(game.as_path()),
     );
+    let unlocked_count = report.entries.iter().filter(|entry| entry.earned).count();
+    let locked_count = report.entries.len().saturating_sub(unlocked_count);
     let summary = match report.total {
         Some(total) => format!(
-            "{} — {} / {} trophies ({}%)",
+            "{} — {} / {} trophies ({}%) · {} unlocked · {} locked",
             report.set_title,
             report.earned,
             total,
-            report.completion.unwrap_or(0)
+            report.completion.unwrap_or(0),
+            unlocked_count,
+            locked_count
         ),
         None => format!("{} — {} unlocked", report.set_title, report.earned),
     };
     let label = Label::new(Some(&summary));
     label.set_xalign(0.0);
     label.set_wrap(true);
+    label.add_css_class("hero-title");
     content.append(&label);
     if let Some(reason) = &report.reason {
         note(&content, reason);
     }
-    for entry in &report.entries {
-        let line = GtkBox::new(Orientation::Horizontal, 8);
-        let grade = Label::new(Some(&format!("[{}]", entry.grade)));
-        grade.set_width_chars(4);
-        let name = Label::new(Some(&entry.name));
-        name.set_xalign(0.0);
-        name.set_hexpand(true);
-        let earned = Label::new(Some(if entry.earned { "unlocked" } else { "" }));
-        earned.add_css_class("dim-label");
-        line.append(&grade);
-        line.append(&name);
-        line.append(&earned);
-        content.append(&line);
-    }
+    let sort = DropDown::from_strings(&["Default order", "Unlock time (newest)", "Trophy name"]);
+    content.append(&row("Sort unlocked trophies", &sort));
+    let unlocked_box = GtkBox::new(Orientation::Vertical, 6);
+    let locked_box = GtkBox::new(Orientation::Vertical, 6);
+    section(&content, &format!("Unlocked ({unlocked_count})"));
+    content.append(&unlocked_box);
+    section(&content, &format!("Locked ({locked_count})"));
+    content.append(&locked_box);
+    let report = Rc::new(report);
+    render_trophies(&report, TrophySort::Default, &unlocked_box, &locked_box);
+    let report_for_sort = report.clone();
+    let unlocked_for_sort = unlocked_box.clone();
+    let locked_for_sort = locked_box.clone();
+    sort.connect_selected_notify(move |sort| {
+        let mode = match sort.selected() {
+            1 => TrophySort::UnlockTime,
+            2 => TrophySort::Name,
+            _ => TrophySort::Default,
+        };
+        render_trophies(&report_for_sort, mode, &unlocked_for_sort, &locked_for_sort);
+    });
     scroll
 }
 

@@ -83,10 +83,16 @@ Deferred from milestone 2:
   shader warm-up, profiling, MangoHud, Discord, draw pipeline, readbacks, Vulkan validation);
 - **Controller**: control scheme, keyboard-prompt installation and every `key_<action>`
   binding from bbport.ini;
+- **Co-op**: BBSC package setup with checksum verification, host address detection, host
+  start/stop, invite codes, account creation and a co-op-aware game launch (Wine is used for
+  the Windows BBSC executables on Linux);
 - **Game & Data**: game/save/mod/patch/DLC folders, language, player name, mods, external
   patches, enhancements, cheats and tweaks;
 - **Launcher / Trophies / Diagnostics**: UI language, update/motion preferences, extra
-  environment, local trophy report, and paths/version diagnostics.
+  environment, local trophy report, and paths/version diagnostics. The trophy page separates
+  unlocked and locked trophies and sorts unlocked entries by default order, unlock time or name.
+  Bloodborne's release trophy key is embedded in `bbport_readiness.rs`, so a new install does not
+  require importing `keys.json`; existing player keys are never overwritten.
 
 Path discovery prefers `BB_PORT_DIR`, then walks ancestors for a `run.sh` and checks sibling
 `linux_launcher`/`windows_laucnher` trees, so the launcher works from `target/release`.
@@ -188,7 +194,7 @@ cargo test
 cargo build --release
 ```
 
-Latest run: 1136 tests, `cargo fmt --check` and `cargo clippy --all-targets` clean.
+Latest run: 1138 tests, `cargo fmt --check` and `cargo clippy --all-targets` clean.
 
 ## CLI
 
