@@ -46,6 +46,8 @@ headerbar { background-color: #12151b; border-bottom: 1px solid #242a35; }
 .trophy-grade { color: #e6c15c; font-weight: 700; }
 "#;
 
+const HERO_ART: &[u8] = include_bytes!("launcher/art/hero.png");
+
 fn install_css() {
     let provider = CssProvider::new();
     provider.load_from_data(CSS);
@@ -206,6 +208,16 @@ fn main() -> glib::ExitCode {
 
 /// Find the port tree. The Rust launcher often runs from `target/release`, so walk up to the
 /// repository root and then check its sibling launcher trees.
+fn art_picture(bytes: &'static [u8], height: i32) -> Option<gtk::Picture> {
+    let bytes = glib::Bytes::from_static(bytes);
+    let texture = gdk::Texture::from_bytes(&bytes).ok()?;
+    let picture = gtk::Picture::for_paintable(&texture);
+    picture.set_content_fit(gtk::ContentFit::Cover);
+    picture.set_size_request(-1, height);
+    picture.set_valign(gtk::Align::Start);
+    Some(picture)
+}
+
 fn resolve_paths() -> Paths {
     let discovered = Paths::discover();
     if discovered.port_dir.join("run.sh").is_file() {
@@ -718,6 +730,9 @@ fn build_play_page(
     subtitle.set_xalign(0.0);
     subtitle.add_css_class("note");
     content.append(&subtitle);
+    if let Some(hero) = art_picture(HERO_ART, 170) {
+        content.append(&hero);
+    }
 
     section(&content, "Game folder");
     let folder_row = GtkBox::new(Orientation::Horizontal, 12);
@@ -1308,9 +1323,6 @@ fn trophy_row(entry: &trophies::TrophyEntry, unlocked: bool) -> GtkBox {
     if !unlocked {
         row.add_css_class("trophy-locked");
     }
-    let grade = Label::new(Some(&format!("[{}]", entry.grade)));
-    grade.set_width_chars(4);
-    grade.add_css_class("trophy-grade");
     let text = GtkBox::new(Orientation::Vertical, 2);
     let name = Label::new(None);
     name.set_markup(&format!("<b>{}</b>", glib::markup_escape_text(&entry.name)));
@@ -1326,7 +1338,17 @@ fn trophy_row(entry: &trophies::TrophyEntry, unlocked: bool) -> GtkBox {
     }
     let status = Label::new(Some(if unlocked { "unlocked" } else { "locked" }));
     status.add_css_class(if unlocked { "status-ready" } else { "note" });
-    row.append(&grade);
+    if let Some(icon) = entry.icon.as_deref().filter(|path| path.is_file()) {
+        let image = gtk::Image::from_file(icon);
+        image.set_pixel_size(36);
+        image.set_valign(gtk::Align::Center);
+        row.append(&image);
+    } else {
+        let grade = Label::new(Some(&format!("[{}]", entry.grade)));
+        grade.set_width_chars(4);
+        grade.add_css_class("trophy-grade");
+        row.append(&grade);
+    }
     row.append(&text);
     row.append(&status);
     row
@@ -1401,6 +1423,9 @@ fn render_trophies(
 
 fn build_trophies_page(state: &Shared) -> ScrolledWindow {
     let (scroll, content) = scrolled_page();
+    if let Some(banner) = art_picture(HERO_ART, 96) {
+        content.append(&banner);
+    }
     section(&content, "Trophy collection");
     let state = state.borrow();
     let saves = readiness::saves_dir(&state.settings, &state.paths.data_dir);
@@ -1431,6 +1456,35 @@ fn build_trophies_page(state: &Shared) -> ScrolledWindow {
     if let Some(reason) = &report.reason {
         note(&content, reason);
     }
+    let platinum: Vec<&trophies::TrophyEntry> = report
+        .entries
+        .iter()
+        .filter(|entry| entry.grade == "P")
+        .collect();
+    let platinum_earned = platinum.iter().any(|entry| entry.earned);
+    let platinum_card = GtkBox::new(Orientation::Horizontal, 10);
+    platinum_card.add_css_class("check-card");
+    let platinum_icon = gtk::Image::from_icon_name("starred-symbolic");
+    platinum_icon.set_pixel_size(34);
+    let platinum_text = GtkBox::new(Orientation::Vertical, 2);
+    let platinum_title = Label::new(None);
+    platinum_title.set_markup("<b>Platinum</b>");
+    platinum_title.set_xalign(0.0);
+    let platinum_detail = Label::new(Some(if platinum_earned {
+        "Platinum trophy earned — every base trophy is unlocked."
+    } else if report.metadata_available {
+        "Platinum trophy locked — unlock every base trophy to earn it."
+    } else {
+        "Platinum status becomes available after the trophy cache is built."
+    }));
+    platinum_detail.set_xalign(0.0);
+    platinum_detail.set_wrap(true);
+    platinum_detail.add_css_class("note");
+    platinum_text.append(&platinum_title);
+    platinum_text.append(&platinum_detail);
+    platinum_card.append(&platinum_icon);
+    platinum_card.append(&platinum_text);
+    content.append(&platinum_card);
     let sort = DropDown::from_strings(&["Default order", "Unlock time (newest)", "Trophy name"]);
     content.append(&row("Sort unlocked trophies", &sort));
     let unlocked_box = GtkBox::new(Orientation::Vertical, 6);

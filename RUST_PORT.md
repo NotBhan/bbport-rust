@@ -92,7 +92,9 @@ Deferred from milestone 2:
   environment, local trophy report, and paths/version diagnostics. The trophy page separates
   unlocked and locked trophies and sorts unlocked entries by default order, unlock time or name.
   Bloodborne's release trophy key is embedded in `bbport_readiness.rs`, so a new install does not
-  require importing `keys.json`; existing player keys are never overwritten.
+  require importing `keys.json`; existing player keys are never overwritten. The Play and Trophy
+  pages use embedded key art, trophy rows show icons from the local trophy cache, and a platinum
+  status card reflects the `P` trophy.
 
 Path discovery prefers `BB_PORT_DIR`, then walks ancestors for a `run.sh` and checks sibling
 `linux_launcher`/`windows_laucnher` trees, so the launcher works from `target/release`.
@@ -142,6 +144,16 @@ Next in this milestone: `runtime_sema.c`, `runtime_rwlock.c`, `runtime_file.c`,
 packet bodies, `resource.h`, `liverpool.cpp` decode/register state, `texture_cache` and
 `buffer_cache`, `renderer_vulkan` (barriers, pipelines, present, FSR 3.1/4, DLSS bridge), and
 the `shim`/`bbnet` layers.
+
+## Renderer status
+
+The launcher, settings, co-op, trophy and GUI layers are Rust. The game process launched by
+`run.sh` is still the C++ `bb-probe` from the port tree: `legacy/gpu`/`linux_launcher/gpu` contain
+the live Vulkan renderer, shader recompiler, FSR/DLSS bridges, loader and runtime. The Rust `gpu`
+and `src` trees are progressively ported state/API models; they do not contain Vulkan calls and
+cannot replace that binary yet. A pure-Rust renderer still needs the Vulkan context, swapchain,
+presenter, command scheduler, shader SPIR-V backend, pipelines, rasterizer, texture/buffer caches,
+FSR 3.1/4, DLSS bridge and the loader/kernel runtime.
 
 ## Audit 2026-11-07
 
